@@ -244,7 +244,7 @@ static void command(void *pvParameters)
 	char hiscmd[10][128];
 	char *argv[20];
 	char hint[] = "BBB@beaglebone:~$ ";
-	io_printf(UART0_BASE, "\rWelcome to FreeRTOS Shell\r\n");
+	io_printf(UART0_BASE, "\n\rWelcome to FreeRTOS Shell\r\n");
 	//reandse[1]='\0';
 	for(i=0;i<10;i++)
 		hiscmd[i][0]='\0';
@@ -323,10 +323,70 @@ static void command(void *pvParameters)
 
 void DATA_ABORT()	{
 	int tmp;
-	serial_puts(UART0_BASE,"omg dataabort...\n");
+	serial_puts(UART0_BASE,"\n\romg dataabort...\n\r");
 	__asm__("mrc p15,0,%0,c5,c0,0" : "=r" (tmp));
-	io_printf(UART0_BASE,"c5 = 0x%p",tmp);
-	while(1){}
+	io_printf(UART0_BASE,"c5 = 0x%p\n\r",tmp);
+	switch(tmp){
+		case 0x1:
+			io_printf(UART0_BASE,"alignment fault\n\r");
+			break;
+		case 0x4:
+			io_printf(UART0_BASE,"instruction cache maintenance fault\n\r");
+			break;
+		case 0xC:
+			io_printf(UART0_BASE,"L1 translation, precise external abort\n\r");
+			break;
+		case 0xE:
+			io_printf(UART0_BASE,"L2 translation, precise external abort\n\r");
+			break;
+		case 0x1C:
+			io_printf(UART0_BASE,"L1 translation precise parity error\n\r");
+			break;
+		case 0x1E:
+			io_printf(UART0_BASE,"L2 translation precise parity error\n\r");
+			break;
+		case 0x5:
+			io_printf(UART0_BASE,"translation fault, section\n\r");
+			break;
+		case 0x7:
+			io_printf(UART0_BASE,"translation fault, page\n\r");
+			break;
+		case 0x3:
+			io_printf(UART0_BASE,"access flag fault, section\n\r");
+			break;
+		case 0x6:
+			io_printf(UART0_BASE,"access flag fault, page\n\r");
+			break;
+		case 0x9:
+			io_printf(UART0_BASE,"domain fault, section\n\r");
+			break;
+		case 0xB:
+			io_printf(UART0_BASE,"domain fault, page\n\r");
+			break;
+		case 0xD:
+			io_printf(UART0_BASE,"permission fault, section\n\r");
+			break;
+		case 0xF:
+			io_printf(UART0_BASE,"permission fault, page\n\r");
+			break;
+		case 0x8:
+			io_printf(UART0_BASE,"precise external abort, nontranslation\n\r");
+			break;
+		case 0x16:
+			io_printf(UART0_BASE,"imprecise external abort\n\r");
+			break;
+		case 0x18:
+			io_printf(UART0_BASE,"imprecise error, parity or ECC\n\r");
+			break;
+		case 0x2:
+			io_printf(UART0_BASE,"debug event.\n\r");
+			break;
+		default:
+			io_printf(UART0_BASE,"reserved\n\r");
+			break;
+
+	}
+	// while(1){}
 }
 
 /*
@@ -353,7 +413,7 @@ int main( void )
 		serial_putc(UART0_BASE,c);	
 	}*/
 
-//start_mmu();
+	start_mmu();
 	//xTaskCreate(vRespTask1,  ( signed char * ) "resp1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, ( xTaskHandle * ) NULL);
 
 	/*xTaskCreate(vRespTask2,  ( signed char * ) "resp2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, ( xTaskHandle * ) NULL);

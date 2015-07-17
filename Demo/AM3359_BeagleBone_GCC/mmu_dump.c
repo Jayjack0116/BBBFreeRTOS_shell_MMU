@@ -22,9 +22,12 @@ static int afe;
 
 #define DESC_SEC        (0x2)
 #define AP_RW           (3<<10) //supervisor=RW, user=RW
+#define AP_NoAccess     (0<<15)|(0<<11) // All accesss generate permision faults
 #define CB              (3<<2)  //cache_on, write_back
 #define NCNB            (0<<2)  //cache_off,WR_BUF off
+#define XNTrue          (1<<4)  //XN = 1
 #define DOMAIN0         (0x0<<5)
+#define NRW_NCNB    (AP_NoAccess|DOMAIN0|XNTrue|NCNB|DESC_SEC)
 #define RW_NCNB     (AP_RW|DOMAIN0|NCNB|DESC_SEC)   /* Read/Write without cache and write buffer */
 #define RW_CB       (AP_RW|DOMAIN0|CB|DESC_SEC)     /* Read/Write, cache, write back */
 /**********************************************************/
@@ -272,6 +275,7 @@ int start_mmu(void)
     CP15DomainAccessClientSet();
     /* set page table */
     mmu_setmtt(0x00000000, 0xFFFFFFFF, 0x00000000, RW_NCNB);    /* None cached for 4G memory    */
+    mmu_setmtt(0x00000000, 0x10000000, 0x10000000, NRW_NCNB);   /* This space can not be access.*/
     mmu_setmtt(0x90000000, 0xB0000000-1, 0xA0600000, RW_CB);    /* cached DDR memory       */
     mmu_setmtt(0xB0000000, 0xD8000000-1, 0xA0600000, RW_NCNB);  /* none-cached DDR memory */
     mmu_setmtt(0x80000000, 0x80020000-1, 0x80000000, RW_CB);    /* 128k OnChip memory           */
@@ -283,10 +287,10 @@ int start_mmu(void)
 
     __asm__("mrc p15,0,%0,c1,c0,0" : "=r" (sctlr));
     __asm__("orr %0,%1,#1 ":"=r"(result):"r"(sctlr));
-    io_printf(UART0_BASE,"\n\rsctlr = %p \r\n",sctlr );
-    afe = sctlr & 0x20000000;
-    io_printf(UART0_BASE,"afe = %d\r\n",afe);
-    io_printf(UART0_BASE,"!!!mmu sart!!!");
+    // io_printf(UART0_BASE,"\n\rsctlr = %p \r\n",sctlr );
+    // afe = sctlr & 0x20000000;
+    // io_printf(UART0_BASE,"afe = %d\r\n",afe);
+    io_printf(UART0_BASE,"!!!mmu sart!!!\n\r");
  //   mmu_dump();
     return 0;
 }
